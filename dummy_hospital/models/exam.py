@@ -69,7 +69,7 @@ class Exam(Base):
     )
     exam_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
     status: Mapped[str | None] = mapped_column(
-        String(50),
+        String(50).evaluates_none(),
         server_default=text("'pending'::character varying"),
         nullable=True,
     )

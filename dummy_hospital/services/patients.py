@@ -6,16 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from dummy_hospital.models.patient import GenderType, Patient
+from dummy_hospital.services._sentinel import UNSET, Unset
 from dummy_hospital.services.exceptions import NotFoundError
-
-
-class _Unset:
-    """Sentinel type used to distinguish an omitted field from an explicit null."""
-
-    __slots__ = ()
-
-
-_UNSET = _Unset()
 
 
 async def create_patient(
@@ -74,30 +66,30 @@ async def update_patient(
     session: AsyncSession,
     patient_id: int,
     *,
-    first_name: str | None | _Unset = _UNSET,
-    last_name: str | None | _Unset = _UNSET,
-    date_of_birth: date | None | _Unset = _UNSET,
-    gender: GenderType | None | _Unset = _UNSET,
-    phone: str | None | _Unset = _UNSET,
-    email: str | None | _Unset = _UNSET,
-    address: str | None | _Unset = _UNSET,
+    first_name: str | None | Unset = UNSET,
+    last_name: str | None | Unset = UNSET,
+    date_of_birth: date | None | Unset = UNSET,
+    gender: GenderType | None | Unset = UNSET,
+    phone: str | None | Unset = UNSET,
+    email: str | None | Unset = UNSET,
+    address: str | None | Unset = UNSET,
 ) -> Patient:
     """Apply provided fields and flush without committing the transaction."""
     patient = await get_patient(session, patient_id)
 
-    if not isinstance(first_name, _Unset):
+    if not isinstance(first_name, Unset):
         patient.first_name = first_name
-    if not isinstance(last_name, _Unset):
+    if not isinstance(last_name, Unset):
         patient.last_name = last_name
-    if not isinstance(date_of_birth, _Unset):
+    if not isinstance(date_of_birth, Unset):
         patient.date_of_birth = date_of_birth
-    if not isinstance(gender, _Unset):
+    if not isinstance(gender, Unset):
         patient.gender = gender
-    if not isinstance(phone, _Unset):
+    if not isinstance(phone, Unset):
         patient.phone = phone
-    if not isinstance(email, _Unset):
+    if not isinstance(email, Unset):
         patient.email = email
-    if not isinstance(address, _Unset):
+    if not isinstance(address, Unset):
         patient.address = address
 
     await session.flush()
