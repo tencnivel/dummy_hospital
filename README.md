@@ -34,8 +34,33 @@ make check
 ```
 
 The individual commands are `make lint`, `make typecheck`, and `make test`. Without Make,
-run the corresponding `uv run ruff check .`, `uv run mypy dummy_hospital tests`, and
+run the corresponding `uv run ruff check .`, `uv run mypy dummy_hospital scripts tests`, and
 `uv run pytest` commands directly.
+
+### Dummy data
+
+Populate an empty non-production database with deterministic fictional data through the
+SQLAlchemy ORM:
+
+```bash
+uv run python scripts/seed_database.py
+```
+
+The defaults create 8 units, 20 doctors, 100 patients, and 200 exams with Faker seed `42`.
+Counts and the seed can be overridden, and a dry run flushes all objects to validate database
+constraints before rolling the transaction back:
+
+```bash
+uv run python scripts/seed_database.py \
+  --seed 123 --units 4 --doctors 10 --patients 50 --exams 100 --dry-run
+```
+
+The seeder refuses to run when `APP_ENV=production`, when any application table already has
+rows, or when the requested total exceeds 100,000 objects. Concurrent seeder invocations are
+serialized with a transaction-scoped PostgreSQL advisory lock. Normal execution commits all
+objects in one transaction; any failure rolls the entire transaction back. The target summary
+hides the database password. PostgreSQL sequence values are non-transactional, so a dry run can
+advance ID sequences even though its rows are rolled back.
 
 ### PostgreSQL integration tests
 
