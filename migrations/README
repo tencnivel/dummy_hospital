@@ -1,0 +1,4 @@
+Alembic migration scripts live here.
+
+The versions directory is intentionally empty. The initial baseline will be
+created only after SQLAlchemy metadata exactly matches the existing schema.

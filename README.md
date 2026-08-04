@@ -37,6 +37,23 @@ The individual commands are `make lint`, `make typecheck`, and `make test`. With
 run the corresponding `uv run ruff check .`, `uv run mypy dummy_hospital tests`, and
 `uv run pytest` commands directly.
 
+### PostgreSQL integration tests
+
+Integration tests use the database configured by `TEST_DATABASE_URL` and skip when it is not
+configured. A dedicated test database is strongly recommended. To create one, an administrator
+must create the database with the application role as owner before that role loads the schema:
+
+```bash
+createdb --owner=dummy_hospital dummy_hospital_test  # run as a PostgreSQL administrator
+psql -h localhost -U dummy_hospital -d dummy_hospital_test \
+  -f db_dump/dummy_hospital_schema_1.sql
+# TEST_DATABASE_URL=postgresql+asyncpg://.../dummy_hospital_test
+uv run pytest -m integration
+```
+
+Each test runs in a transaction that is rolled back. The current `dummy_hospital` role does
+not have permission to create databases, so database creation requires an administrator.
+
 ## Database migrations
 
 Alembic is configured, but there are intentionally no revisions yet. Do not run
