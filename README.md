@@ -27,6 +27,67 @@ Do not use those credentials outside local development.
 - Application routes will live under `/api/v1`; resource routers exist but intentionally expose no CRUD endpoints yet.
 - Interactive OpenAPI documentation is available at `/docs` while the application is running.
 
+## Database schema
+
+```mermaid
+erDiagram
+    UNIT o|--o{ DOCTOR : contains
+    UNIT o|--o{ EXAM : hosts
+    PATIENT ||--o{ EXAM : undergoes
+    DOCTOR o|--o{ EXAM : performs
+
+    UNIT {
+        integer unit_id PK
+        string unit_name
+        string unit_code UK
+        text description
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    DOCTOR {
+        integer doctor_id PK
+        string first_name
+        string last_name
+        string specialty
+        string license_number UK
+        string phone
+        string email
+        integer unit_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    PATIENT {
+        integer patient_id PK
+        string first_name
+        string last_name
+        date date_of_birth
+        gender_type gender
+        string phone
+        string email
+        text address
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    EXAM {
+        integer exam_id PK
+        integer patient_id FK
+        integer doctor_id FK
+        integer unit_id FK
+        timestamp exam_date
+        string exam_type
+        string status
+        text notes
+        text result
+        timestamp created_at
+        timestamp updated_at
+    }
+```
+
+Foreign-key deletion behavior is documented in [docs/database.md](docs/database.md).
+
 ## Development checks
 
 ```bash
