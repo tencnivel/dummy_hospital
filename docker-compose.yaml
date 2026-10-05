@@ -1,0 +1,50 @@
+services:
+  dummy_hospital_app:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+      args:
+        APP_UID: ${APP_UID:-1000}
+        APP_GID: ${APP_GID:-1000}
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    environment:
+      APP_ENV: development
+      DATABASE_URL: postgresql+asyncpg://dummy_hospital:${POSTGRES_PASSWORD:-dummy_hospital}@dummy_hospital_db:5432/dummy_hospital
+    volumes:
+      - .:/app
+    depends_on:
+      dummy_hospital_db:
+        condition: service_healthy
+    command:
+      - uv
+      - run
+      - --no-sync
+      - uvicorn
+      - dummy_hospital.main:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --reload
+
+  dummy_hospital_db:
+    image: postgres:18
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: dummy_hospital
+      POSTGRES_USER: dummy_hospital
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dummy_hospital}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./db_dump/dummy_hospital_schema_1.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dummy_hospital -d dummy_hospital"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  postgres-data:

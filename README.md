@@ -8,6 +8,7 @@ Initial FastAPI backend scaffold for the Dummy Hospital application.
 - PostgreSQL
 - [uv](https://docs.astral.sh/uv/)
 - Make (optional convenience wrapper for development commands)
+- Docker with Compose (optional containerized setup)
 
 ## Local setup
 
@@ -17,8 +18,33 @@ uv sync --extra dev
 uv run uvicorn dummy_hospital.main:app --reload
 ```
 
-The example configuration points to the existing local development database.
-Do not use those credentials outside local development.
+The example configuration uses development-only credentials. Do not use them outside local
+development.
+
+## Docker Compose setup
+
+Build the application image and start the API and PostgreSQL services:
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+The application source is bind-mounted into the container, and Uvicorn reloads when Python
+files change. The application is available at <http://localhost:8000>. PostgreSQL is exposed on
+port `5432` for host-side tools, and the application image includes the `psql` client.
+
+The schema dump is loaded only when the PostgreSQL data volume is first created. To discard the
+database and initialize it again:
+
+```bash
+docker compose down --volumes
+docker compose up --build
+```
+
+Use `APP_PORT`, `APP_UID`, `APP_GID`, `POSTGRES_PORT`, and `POSTGRES_PASSWORD` in `.env`
+to override the development defaults. Compose sets the application's internal database host to
+`dummy_hospital_db` regardless of the host-oriented `DATABASE_URL` in `.env`.
 
 ## Endpoints
 
