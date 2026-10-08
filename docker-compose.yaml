@@ -10,6 +10,8 @@ services:
       - "${APP_PORT:-8000}:8000"
     environment:
       APP_ENV: development
+      # Container environment variables override values loaded from /app/.env by Pydantic.
+      # Use the Compose service name and internal port instead of the host-facing address.
       DATABASE_URL: postgresql+asyncpg://dummy_hospital:${POSTGRES_PASSWORD:-dummy_hospital}@dummy_hospital_db:5432/dummy_hospital
     volumes:
       - .:/app

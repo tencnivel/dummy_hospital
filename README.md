@@ -2,37 +2,30 @@
 
 Initial FastAPI backend scaffold for the Dummy Hospital application.
 
-## Requirements
-
-- Python 3.12 or newer
-- PostgreSQL
-- [uv](https://docs.astral.sh/uv/)
-- Make (optional convenience wrapper for development commands)
-- Docker with Compose (optional containerized setup)
-
-## Local setup
-
-```bash
-cp .env.example .env
-uv sync --extra dev
-uv run uvicorn dummy_hospital.main:app --reload
-```
-
-The example configuration uses development-only credentials. Do not use them outside local
-development.
 
 ## Docker Compose setup
 
+### Requirements
+- Docker with Compose (optional containerized setup)
+
+### Setup commands
 Build the application image and start the API and PostgreSQL services:
 
 ```bash
 cp .env.example .env
-docker compose up --build
+# Edit .env and replace each <...> placeholder before continuing.
+```
+
+Use the Makefile command to build and start the services:
+
+```bash
+make compose-up
 ```
 
 The application source is bind-mounted into the container, and Uvicorn reloads when Python
-files change. The application is available at <http://localhost:8000>. PostgreSQL is exposed on
-port `5432` for host-side tools, and the application image includes the `psql` client.
+files change. The application is available at `http://localhost:<APP_PORT>`, using the value
+configured in `.env`. PostgreSQL is exposed on the configured `POSTGRES_PORT` for host-side
+tools, and the application image includes the `psql` client.
 
 The schema dump is loaded only when the PostgreSQL data volume is first created. To discard the
 database and initialize it again:
@@ -42,15 +35,41 @@ docker compose down --volumes
 docker compose up --build
 ```
 
-Use `APP_PORT`, `APP_UID`, `APP_GID`, `POSTGRES_PORT`, and `POSTGRES_PASSWORD` in `.env`
-to override the development defaults. Compose sets the application's internal database host to
-`dummy_hospital_db` regardless of the host-oriented `DATABASE_URL` in `.env`.
+Configure `COMPOSE_PROJECT_NAME`, `APP_PORT`, `APP_UID`, `APP_GID`, `POSTGRES_PORT`, and
+`POSTGRES_PASSWORD` in `.env`. Choose a unique project name and host ports when sharing a Docker
+daemon with other users.
+
+The source bind mount makes the host `.env` file available to the application at `/app/.env`.
+Pydantic Settings reads that file, but process environment variables take precedence over its
+values. The app service therefore injects its own `DATABASE_URL`, replacing the host-oriented
+URL from `.env` with one that uses the `dummy_hospital_db` service name and PostgreSQL's internal
+port `5432`. `POSTGRES_PORT` only controls the port exposed on the host.
+
+## Local setup
+
+### Requirements
+
+- Python 3.12 or newer
+- PostgreSQL
+- [uv](https://docs.astral.sh/uv/)
+- Make (optional convenience wrapper for development commands)
+
+### Setup commands
+```bash
+cp .env.example .env
+uv sync --extra dev
+uv run uvicorn dummy_hospital.main:app --reload
+```
+
+Replace every placeholder in `.env` with values appropriate for your local environment.
+
 
 ## Endpoints
 
 - `GET /healthz` checks application liveness without accessing PostgreSQL.
 - `GET /readyz` executes `SELECT 1` against PostgreSQL and returns HTTP 503 if it is unavailable.
-- Application routes will live under `/api/v1`; resource routers exist but intentionally expose no CRUD endpoints yet.
+- `GET /api/v1/doctors`, `/patients`, `/units`, and `/exams` return paginated resource
+  lists and accept `limit` and `offset` query parameters.
 - Interactive OpenAPI documentation is available at `/docs` while the application is running.
 
 ## Database schema
